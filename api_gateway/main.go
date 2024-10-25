@@ -12,24 +12,23 @@ func merchantMidlle (next http.HandlerFunc)http.HandlerFunc {
 		author := r.Header.Get("Authorization")
 
 		if author != "su-admin" {
-			w.WriteHeader(http.StatusForbidden) // Mengatur status code 403 Forbidden
+			w.WriteHeader(http.StatusForbidden) 
 			w.Write([]byte("Anda tidak memiliki akses"))
-			return // Pastikan untuk menghentikan eksekusi selanjutnya
+			return 
 		}
 
 		next.ServeHTTP(w,r)
 	}
 }
 
-// middleware admin
 func superAdmin(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		author := r.Header.Get("Authorization")
 
 		if author != "su-admin" {
-			w.WriteHeader(http.StatusForbidden) // Mengatur status code 403 Forbidden
+			w.WriteHeader(http.StatusForbidden) 
 			w.Write([]byte("Anda tidak memiliki akses"))
-			return // Pastikan untuk menghentikan eksekusi selanjutnya
+			return 
 		}
 
 		next.ServeHTTP(w, r)
@@ -39,10 +38,10 @@ func superAdmin(next http.HandlerFunc) http.HandlerFunc {
 func getMerchant(w http.ResponseWriter, r *http.Request) {
 	resp, err := http.Get("http://localhost:8000/get-merchant")
 	if err != nil {
-		http.Error(w, "Error fetching merchant", http.StatusInternalServerError) // Mengatur status code 500
+		http.Error(w, "Error fetching merchant", http.StatusInternalServerError)
 		return
 	}
-	defer resp.Body.Close() // Pastikan untuk menutup body setelah dibaca
+	defer resp.Body.Close() 
 
 	if resp.StatusCode != http.StatusOK {
 		http.Error(w, "Error fetching merchant: "+resp.Status, resp.StatusCode)
