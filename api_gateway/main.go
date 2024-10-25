@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,42 +11,79 @@ func merchantMidlle (next http.HandlerFunc)http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		author := r.Header.Get("Authorization")
 
-		if author != "merchant" {
-			w.Write([]byte("anda tidak memiliki akses"))
+		if author != "su-admin" {
+			w.WriteHeader(http.StatusForbidden) // Mengatur status code 403 Forbidden
+			w.Write([]byte("Anda tidak memiliki akses"))
+			return // Pastikan untuk menghentikan eksekusi selanjutnya
 		}
+
 		next.ServeHTTP(w,r)
 	}
 }
 
 // middleware admin
-func superAdmin (next http.HandlerFunc)http.HandlerFunc {
+func superAdmin(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		author := r.Header.Get("Authorization")
 
 		if author != "su-admin" {
-			w.Write([]byte("anda tidak memiliki akses"))
+			w.WriteHeader(http.StatusForbidden) // Mengatur status code 403 Forbidden
+			w.Write([]byte("Anda tidak memiliki akses"))
+			return // Pastikan untuk menghentikan eksekusi selanjutnya
 		}
-		next.ServeHTTP(w,r)
+
+		next.ServeHTTP(w, r)
 	}
 }
 
-func getMerchant(w http.ResponseWriter,r *http.Request) {
-	resp , err := http.Get("http://localhost:8000/get-merchant")
+func getMerchant(w http.ResponseWriter, r *http.Request) {
+	resp, err := http.Get("http://localhost:8000/get-merchant")
 	if err != nil {
-		w.Write([]byte("err at get merchant"))
+		http.Error(w, "Error fetching merchant", http.StatusInternalServerError) // Mengatur status code 500
+		return
 	}
-	data,_ := ioutil.ReadAll(resp.Body)
-	json.NewEncoder(w).Encode(data);
+	defer resp.Body.Close() // Pastikan untuk menutup body setelah dibaca
+
+	if resp.StatusCode != http.StatusOK {
+		http.Error(w, "Error fetching merchant: "+resp.Status, resp.StatusCode)
+		return
+	}
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, "Error reading response body", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json") // Set header content type
+	w.WriteHeader(http.StatusOK) // Mengatur status code 200
+	w.Write(data)
 }
 
-func getAllToko(w http.ResponseWriter,r *http.Request) {
-	resp , err := http.Get("http://localhost:9000/get-all-toko")
+func getAllToko(w http.ResponseWriter, r *http.Request) {
+	resp, err := http.Get("http://localhost:9000/get-all-toko")
 	if err != nil {
-		w.Write([]byte("err at get merchant"))
+		http.Error(w, "Error fetching all toko", http.StatusInternalServerError) // Mengatur status code 500
+		return
 	}
-	data,_ := ioutil.ReadAll(resp.Body)
-	json.NewEncoder(w).Encode(data);
+	defer resp.Body.Close() // Pastikan untuk menutup body setelah dibaca
+
+	if resp.StatusCode != http.StatusOK {
+		http.Error(w, "Error fetching all toko: "+resp.Status, resp.StatusCode)
+		return
+	}
+
+	data, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		http.Error(w, "Error reading response body", http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json") // Set header content type
+	w.WriteHeader(http.StatusOK) // Mengatur status code 200
+	w.Write(data)
 }
+
 func main () {
 	mux := http.NewServeMux()
 
