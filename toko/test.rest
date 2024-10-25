@@ -1,0 +1,7 @@
+# Get All Toko
+GET http://localhost:9000/get-all-toko
+
+###
+
+# Get Detail Toko (Contoh ID Toko 1)
+GET http://localhost:9000/get-detail-toko?id=1
