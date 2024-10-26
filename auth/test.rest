@@ -1,0 +1,4 @@
+
+# ping 
+GET http://localhost:8001/ping
+
